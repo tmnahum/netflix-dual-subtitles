@@ -1,0 +1,42 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Subbed playback fixture</title><style>body{margin:0;background:#10151b;color:white;font-family:system-ui}video{width:100vw;height:100vh;background:radial-gradient(ellipse at 30% 60%,#42595c,#121923 70%)}.player-timedtext{position:absolute;bottom:12%;left:40%}</style></head><body>
+<video></video><div class="player-timedtext">Netflix native caption</div>
+<script>
+  const samples = {
+    en: 'WEBVTT\n\n00:00.000 --> 00:10.000\nEvery story opens a new world.\n\n00:10.000 --> 00:20.000\nLet’s see where this one takes us.',
+    ja: 'WEBVTT\n\n00:00.000 --> 00:10.000\n物語は、新しい世界への扉。\n\n00:10.000 --> 00:20.000\nどこへ連れて行ってくれるだろう。'
+  };
+  window.failDownloads = false;
+  window.chrome = {
+    storage: { local: { get: async () => ({}), set: async () => {} } },
+    runtime: { onMessage: { addListener: () => {} }, sendMessage: async ({url}) => window.failDownloads ? {error:'Fixture download failure'} : {text:samples[url.split('/').pop()]} }
+  };
+  const nativeMode = new URLSearchParams(location.search).has('native');
+  if (nativeMode) {
+    const off = { trackId: 'off', isNoneTrack: true };
+    const tracks = [off, { trackId: 'en', bcp47: 'en', displayName: 'English' }, { trackId: 'ja', bcp47: 'ja', displayName: 'Japanese' }];
+    let selected = off;
+    const player = {
+      getMovieId: () => location.pathname.split('/').pop(),
+      getTimedTextTrackList: () => tracks,
+      getTimedTextTrack: () => selected,
+      setTimedTextTrack(track) {
+        selected = track;
+        if (!track.isNoneTrack) {
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', `https://fixture.nflxvideo.net/${track.trackId}`);
+          xhr.send();
+        }
+      }
+    };
+    window.fixturePlayer = player;
+    window.netflix = { appContext: { state: { playerApp: { getAPI: () => ({ videoPlayer: { getAllPlayerSessionIds: () => ['fixture'], getVideoPlayerBySessionId: () => player } }) } } } };
+  }
+  window.addEventListener('message', event => {
+    if (nativeMode) return;
+    if(event.data?.source !== 'subbed-request') return;
+    window.postMessage({source:'subbed-manifest',movieId:location.pathname.split('/').pop(),tracks:['en','ja'].map((language,i)=>({new_track_id:language, language, languageDescription:['English','Japanese'][i],ttDownloadables:{'webvtt-lssdh-ios8':{downloadUrls:{cdn:`https://fixture.nflxvideo.net/${language}`}}}}))},location.origin);
+  });
+</script>
+<script src="/extension/bridge.js"></script>
+<script src="/extension/subtitles.js"></script><script src="/extension/content.js"></script>
+</body></html>
