@@ -12,17 +12,19 @@ A Chrome extension that displays two Netflix subtitle tracks together, synchroni
 
 Load the folder, not the ZIP or the project root. Keep the folder in place while the extension is installed. If using the release ZIP, extract it first and load the extracted `extension` folder.
 
-## Updating to 0.1.3
+## Updating to 0.1.4
 
-Replace the files in the folder Chrome originally loaded (downloading a new ZIP alone does not update it). Click **Reload** on the Subbed card at `chrome://extensions`, then reload Netflix. The panel should show **v0.1.3**.
+Replace the files in the folder Chrome originally loaded (downloading a new ZIP alone does not update it). Click **Reload** on the Subbed card at `chrome://extensions`, then reload Netflix. The panel should show **v0.1.4**.
 
-This version supports player tracks with no download URLs. If manifest discovery is unavailable, Subbed lists Netflix's native text tracks and briefly selects each chosen track to capture its normal subtitle download. The two loads run in sequence, then the original native selection is restored. Captured text stays in memory and is not included in diagnostic exports.
+Version 0.1.4 adds independent subtitle appearance controls, draggable screen positions, and an idle-fading menu button. English and English CC are distinctly labeled and remembered across episodes.
+
+Subbed supports player tracks with no download URLs. If manifest discovery is unavailable, Subbed lists Netflix's native text tracks and briefly selects each chosen track to capture its normal subtitle download. The two loads run in sequence, then the original native selection is restored. Captured text stays in memory and is not included in diagnostic exports.
 
 The native subtitle language may change briefly while tracks load. Each load times out after 12 seconds and restores the prior selection if you have not manually changed it or switched episodes. If Netflix serves a track entirely from its internal cache and produces no network response, Subbed cannot capture that file: select the language in Netflix's own menu and retry, or reload the tab. Exact track IDs keep CC and regular variants distinct.
 
 ## Export a troubleshooting report
 
-1. Reload Netflix with version 0.1.3 enabled, then play a show for about 20 seconds.
+1. Reload Netflix with version 0.1.4 enabled, then play a show for about 20 seconds.
 2. Turn on subtitles in Netflix's own menu and switch to a different subtitle language once.
 3. Open Subbed and click **Export debug report**.
 4. Attach the downloaded `subbed-debug-….json` file to the troubleshooting conversation.
@@ -36,10 +38,15 @@ This is **page-level diagnostic capture**, not a complete HAR or packet capture.
 ## Controls
 
 - Two independent track selectors, including exposed CC and forced-narrative variants.
-- Caption size and a shared timing offset. Positive offsets delay both captions.
+- Open **Subtitle appearance & position**, choose **First subtitle** or **Second subtitle**, and customize font size (16–64 px), text color, background color/opacity, shadow, and weight independently.
+- Backgrounds default to **0% opacity (fully transparent)**, with white text and a dark shadow. Set opacity to 0% to remove both the colored background and its padding shadow.
+- Use the **Top** or **Bottom** preset for either track, or click **Drag subtitles**. Drag each caption anywhere in the viewport, including the black bars. Click **Done** or press Escape when finished. In positioning mode, captions remain draggable even during a dialogue gap.
+- Positioning also supports arrow keys (hold Shift for larger moves). Positions are saved as percentages so they adapt to window size and fullscreen. **Reset appearance** resets only the currently selected track's style and position.
+- The menu starts closed. Its button fades after roughly **2.5 seconds without pointer movement during playback**, or sooner when Netflix hides the video cursor. Moving the pointer brings it back. It stays visible while paused, editing settings, positioning captions, or focused with the keyboard.
+- A shared timing offset; positive offsets delay both captions.
 - A toggle that restores Netflix's own captions when dual subtitles are disabled.
 - Close the settings panel with × or Escape; reopen it with the on-screen button or extension toolbar icon.
-- Preferences are saved locally. Available preferred languages are reselected for subsequent episodes.
+- Preferences are saved locally, including appearance, positions, and regular/CC/forced track type. If a saved variant is unavailable on the next episode, select a track explicitly; Subbed does not silently replace English CC with regular English.
 - Captions follow seeks, pauses, playback speed, and fullscreen on the player container.
 
 ## Scope and limits
@@ -67,6 +74,9 @@ The fixture is at `http://127.0.0.1:5173/watch/123`. Its `?native=1` mode uses a
 
 Validated locally:
 
+- Variant preference regression tests for English versus English CC, including changed track IDs on subsequent episodes.
+- Chrome fixture checks for independent appearance, transparent backgrounds, top placement, dragging into letterbox space, persistence on reload, idle fade/wake, fullscreen reparenting, keyboard positioning, and resizing.
+
 - Automated parser tests for Unicode, WebVTT cue settings, overlapping cues, TTML namespaces, ticks, frames, inherited timing, and malformed/unsupported content.
 - Manifest interception tests for title filtering, early-manifest replay, request profiles, and JSON reviver/replacer preservation.
 - Diagnostic tests for bounded buffers, sensitive-value redaction, caller response preservation, fetch rejection behavior, and media/license body exclusions.
@@ -76,7 +86,7 @@ Validated locally:
 - Browser fixture check that the diagnostic export downloads valid JSON without interrupting captions or producing page errors.
 - Browser fixture checks for dual captions, forward/backward seeks, disable/restore, navigation to a new episode, and download failure fallback.
 
-**Live signed-in Netflix playback has not been verified.** Before relying on this extension, test two languages on a real title, seek, change episodes, and enter fullscreen. The fixture cannot validate Netflix's current manifest delivery, signed CDN URLs, or player DOM.
+**The user confirmed live Netflix playback works with v0.1.3.** The v0.1.4 appearance and placement changes were verified in local Chrome fixtures; they have not yet been confirmed in the user's Netflix session. The fixture cannot validate future Netflix player changes.
 
 Resource capture uses the [Resource Timing API](https://developer.mozilla.org/en-US/docs/Web/API/PerformanceResourceTiming).
 

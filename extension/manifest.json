@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Subbed — Two subtitles for Netflix",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Watch Netflix with two available subtitle tracks at once.",
   "minimum_chrome_version": "111",
   "permissions": ["storage"],
@@ -10,6 +10,6 @@
   "action": {"default_title": "Show Subbed controls"},
   "content_scripts": [
     {"matches": ["https://www.netflix.com/*"], "js": ["bridge.js"], "run_at": "document_start", "world": "MAIN"},
-    {"matches": ["https://www.netflix.com/*"], "js": ["subtitles.js", "content.js"], "run_at": "document_start"}
+    {"matches": ["https://www.netflix.com/*"], "js": ["subtitles.js", "preferences.js", "content.js"], "run_at": "document_start"}
   ]
 }

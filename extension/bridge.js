@@ -3,7 +3,7 @@
   const parse = JSON.parse;
   const stringify = JSON.stringify;
   const manifests = new Map();
-  const diagnostics = { version: '0.1.3', parsed: 0, manifests: 0, player: false, playerTracks: 0 };
+  const diagnostics = { version: '0.1.4', parsed: 0, manifests: 0, player: false, playerTracks: 0 };
   const currentId = () => location.pathname.match(/^\/watch\/(\d+)/)?.[1] || '';
   const nativeTexts = new Map();
   let pendingTrack = null, selectionSerial = 0;
@@ -178,7 +178,7 @@
         // Native player tracks remain usable even when the manifest is encrypted.
         const nativeTracks = Array.from(tracks).filter(t => t && !t.isNoneTrack && !t.isImageBased && trackId(t)).map(t => ({
           trackId: trackId(t), bcp47: t.bcp47, language: t.language, displayName: t.displayName,
-          rawTrackType: t.rawTrackType, isForcedNarrative: t.isForcedNarrative, subbedNative: true
+          rawTrackType: t.rawTrackType, trackType: t.trackType, isForcedNarrative: t.isForcedNarrative, subbedNative: true
         }));
         if (nativeTracks.length && !manifests.has(currentId())) window.postMessage({ source: 'subbed-manifest', movieId: currentId(), tracks: nativeTracks }, location.origin);
         // Some builds put download descriptors directly on the player track list.

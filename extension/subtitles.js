@@ -91,7 +91,12 @@
       for (const field of ['ttDownloadables', 'downloadables', 'downloadUrls', 'urls']) collect(track[field]);
       sources.sort((a, b) => Number(!/vtt/i.test(a.format)) - Number(!/vtt/i.test(b.format)));
       const language = track.language || track.bcp47 || 'und';
-      return { id: String(track.new_track_id || track.trackId || `${language}-${i}`), language, label: `${track.languageDescription || track.displayName || language}${track.rawTrackType === 'closedcaptions' ? ' · CC' : ''}${track.isForcedNarrative ? ' · Forced' : ''}`, native: track.subbedNative === true, sources };
+      const base = track.languageDescription || track.displayName || language;
+      const cc = /closed.?captions|sdh|^cc$/i.test(track.rawTrackType || '') || /closed.?captions|^cc$/i.test(track.trackType || '') || /\b(?:CC|SDH)\b/i.test(base);
+      const forced = Boolean(track.isForcedNarrative);
+      const kind = `${cc ? 'cc' : 'subtitles'}${forced ? '-forced' : ''}`;
+      const label = `${base}${cc && !/\b(?:CC|SDH)\b/i.test(base) ? ' · CC' : ''}${forced && !/\bforced\b/i.test(base) ? ' · Forced' : ''}`;
+      return { id: String(track.new_track_id || track.trackId || `${language}-${i}`), language, kind, label, native: track.subbedNative === true, sources };
     }).filter(track => track.sources.length || track.native);
   }
   globalThis.Subbed = { time, parse, index, active, tracks };

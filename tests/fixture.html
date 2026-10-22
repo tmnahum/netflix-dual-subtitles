@@ -7,7 +7,7 @@
   };
   window.failDownloads = false;
   window.chrome = {
-    storage: { local: { get: async () => ({}), set: async () => {} } },
+    storage: { local: { get: async () => JSON.parse(localStorage.getItem('fixture-settings') || '{}'), set: async value => localStorage.setItem('fixture-settings', JSON.stringify(value)) } },
     runtime: { onMessage: { addListener: () => {} }, sendMessage: async ({url}) => window.failDownloads ? {error:'Fixture download failure'} : {text:samples[url.split('/').pop()]} }
   };
   const nativeMode = new URLSearchParams(location.search).has('native');
@@ -34,9 +34,9 @@
   window.addEventListener('message', event => {
     if (nativeMode) return;
     if(event.data?.source !== 'subbed-request') return;
-    window.postMessage({source:'subbed-manifest',movieId:location.pathname.split('/').pop(),tracks:['en','ja'].map((language,i)=>({new_track_id:language, language, languageDescription:['English','Japanese'][i],ttDownloadables:{'webvtt-lssdh-ios8':{downloadUrls:{cdn:`https://fixture.nflxvideo.net/${language}`}}}}))},location.origin);
+    window.postMessage({source:'subbed-manifest',movieId:location.pathname.split('/').pop(),tracks:['en','ja','en-cc'].map((id,i)=>({new_track_id:id, language:id === 'en-cc' ? 'en' : id, rawTrackType: id === 'en-cc' ? 'CLOSED_CAPTIONS' : 'subtitles', languageDescription:['English','Japanese','English'][i],ttDownloadables:{'webvtt-lssdh-ios8':{downloadUrls:{cdn:`https://fixture.nflxvideo.net/${id === 'en-cc' ? 'en' : id}`}}}}))},location.origin);
   });
 </script>
 <script src="/extension/bridge.js"></script>
-<script src="/extension/subtitles.js"></script><script src="/extension/content.js"></script>
+<script src="/extension/subtitles.js"></script><script src="/extension/preferences.js"></script><script src="/extension/content.js"></script>
 </body></html>
